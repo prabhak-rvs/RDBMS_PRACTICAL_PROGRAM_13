@@ -1,0 +1,56 @@
+name: Assignment 13 - 3NF Autograding
+
+on:
+  push:
+    paths:
+      - 'Assignment_13/**'
+      - '.github/workflows/assignment13.yml'
+
+  pull_request:
+    paths:
+      - 'Assignment_13/**'
+      - '.github/workflows/assignment13.yml'
+
+  workflow_dispatch:
+
+jobs:
+  autograding:
+
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: autograding_db
+
+        ports:
+          - 3306:3306
+
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install MySQL Client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Make Test Executable
+        run: |
+          chmod +x Assignment_13/test.sh
+
+      - name: Run Autograding
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        run: |
+          ./Assignment_13/test.sh
